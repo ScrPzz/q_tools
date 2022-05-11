@@ -1,0 +1,7 @@
+README.md
+setup.py
+q_tools.egg-info/PKG-INFO
+q_tools.egg-info/SOURCES.txt
+q_tools.egg-info/dependency_links.txt
+q_tools.egg-info/requires.txt
+q_tools.egg-info/top_level.txt
