@@ -156,8 +156,8 @@ def interpolate_dict(X=list, strategy={'inside': 'cubicspline', 'outside': 'fill
 
 
 def limit_dict_values_to_range(d=dict, accepted_range=tuple):
-    m=accepted_range([0])
-    M=accepted_range([1])
+    m = list(accepted_range)[0]
+    M = list(accepted_range)[1]
     
     for k, v in d.items():
         if (v is not None) and (v >M):
