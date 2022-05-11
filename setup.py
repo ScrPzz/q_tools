@@ -6,6 +6,6 @@ setup(
     description='Quantiles analysis tools',
     author='Alessandro Togni',
     license='MIT',
-    install_requires=['pandas', 'numpy', 'collections', 'matplotlib'],
+    install_requires=['pandas', 'numpy', 'matplotlib'],
     python_requires='>=3'
 )
