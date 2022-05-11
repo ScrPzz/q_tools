@@ -167,3 +167,13 @@ def limit_dict_values_to_range(d=dict, accepted_range=tuple):
         else:
             pass
     return d
+
+
+def round_dict_values(d=dict, decimals=int):
+    aux=d
+    for k, v in d.items():
+        if v is not None:
+            aux[k]=np.abs(np.around(v, decimals=decimals))
+        else:
+            continue
+    return aux
