@@ -50,7 +50,7 @@ def extract_established_authors(quantiles_data=pd.DataFrame, from_year=int, to_y
         
     return established_authors, jumping_up, jumping_down
 
-
+#------------------------------------------------------------------#
 
 
 def add_qtiles_jump_over_years(q_tilized_data, from_year=int, to_year=int, column_name=str):
@@ -67,6 +67,7 @@ def add_qtiles_jump_over_years(q_tilized_data, from_year=int, to_year=int, colum
     return q_tilized_data
 
 
+#------------------------------------------------------------------#
 
 def extract_qtiles_communities_over_time(q_tilized_data, from_year=int, to_year=int, threshold=float):
     
@@ -104,6 +105,7 @@ def extract_qtiles_communities_over_time(q_tilized_data, from_year=int, to_year=
     del Q_permanences, ll
     return tile_to_ids
 
+#------------------------------------------------------------------#
 
 def extract_q_tile_history(df, quantity_name=str, apply_log= bool, q_tile=int):
     """
@@ -188,7 +190,7 @@ def extract_q_tile_history(df, quantity_name=str, apply_log= bool, q_tile=int):
     
     return auxil, A, quantiles_list
 
-
+#------------------------------------------------------------------#
 
 def extract_history(df, quantity_name=str, apply_log= bool):
      
@@ -234,3 +236,52 @@ def extract_history(df, quantity_name=str, apply_log= bool):
     del df_aux
     
     return auxil
+
+#------------------------------------------------------------------#
+
+def quantile_transition_by_ids(df, from_year=int, to_year=int, alluvial_graph=bool, qtiles_n=int):
+    
+    from_distr=aux.extract_bins_to_ids_dict(np.log(df[df['auct_year']==from_year]['avg_estimate']), bin_n=20, do_qtiles=True, qtile=qtiles_n)
+    to_distr=aux.extract_bins_to_ids_dict(np.log(df[df['auct_year']==to_year]['avg_estimate']), bin_n=20, do_qtiles=True, qtile=qtiles_n)
+    alluvial_data={}
+    aux={}
+    V=[]
+    
+    for k, v in from_distr.items():
+        for i in v:
+            V.append(i)
+    A=tuple(V)
+    V=[]
+    for k, v in to_distr.items():
+        for i in v:
+            V.append(i)
+            
+    B=tuple(V)
+    full_shared_artist_ids=set(A) & set(B)
+    lost_artists= list(set(A).difference(B))
+    infos_loss=len(lost_artists)/len(A)
+    del A,B,V
+    print(f'The chosen years are missing shared infos for {round(infos_loss*100, 2)}% of the authors')
+    
+    for k_0, v_0 in from_distr.items():
+        a={}
+        for k_1, v_1 in to_distr.items():
+            
+            shared_ids=list(set(from_distr[k_0]) & set(to_distr[k_1]))
+            aux[f'{k_0}_to_{k_1}']= {'shared_n': len(shared_ids), 'shared_ids': shared_ids}
+            a[str(f'{k_1}')] = float( len(shared_ids) /len(from_distr[k_0]))
+                            
+        alluvial_data[str(f'_{k_0}')]=a
+        
+    # alluvial plot
+    if alluvial_graph:
+        import alluvial
+        cmap = plt.cm.get_cmap('jet')
+        ax = alluvial.plot(alluvial_data, alpha=0.7, color_side=1, rand_seed=7, wdisp_sep=' '*2, cmap=cmap, fontname='Monospace',
+        labels=('starting_quantile', 'arriving_quantile'), label_shift=1)
+        fig = ax.get_figure()
+        fig.set_size_inches(9,9)
+        ax.set_title(f'Transitions from {from_year} to {to_year}')
+        plt.show()
+    
+    return aux, alluvial_data, infos_loss, lost_artists

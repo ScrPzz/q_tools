@@ -1,4 +1,5 @@
 from setuptools import find_packages, setup
+
 setup(
     name='q_tools',
     packages=find_packages(include=['q_tools']),
@@ -6,6 +7,6 @@ setup(
     description='Quantiles analysis tools',
     author='Alessandro Togni',
     license='MIT',
-    install_requires=['pandas', 'numpy', 'matplotlib'],
+    install_requires=['pandas', 'numpy', 'matplotlib', ],
     python_requires='>=3'
 )
