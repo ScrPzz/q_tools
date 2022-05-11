@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from collections import Counter, OrderedDict
 import pandas as pd
+import seaborn as sns
 
 #------------------------------------------------------------------#
 
@@ -337,3 +338,65 @@ def add_qtiles_jump_over_years(q_tilized_data, from_year=int, to_year=int, colum
     
     q_tilized_data=q_tilized_data.drop(f'{column_name}_aux', axis=1)
     return q_tilized_data
+
+
+
+
+def extract_single_quantile_evolution(data, from_year=int, to_year=int, quantile_n=int, do_plot=bool, qtiles=int):
+    
+    def extract_bins_to_ids_dict(data_w_id, year=int, bin_n=int, do_qtiles=bool, qtile=int ):
+    
+        if do_qtiles:
+            bin_list=list(np.nanpercentile(data_w_id, np.arange(0, 100, int(100/bin_n))))
+            bin_list.append(np.nanmax(data_w_id))
+        else:
+            bin_list = np.linspace(np.nanmin(data_w_id),np.nanmax(data_w_id), bin_n)
+        intervs=list(zip(bin_list[::1],bin_list[1::1]))
+        R={}
+        for b, v in enumerate(intervs):
+            L=[]
+            for i in data_w_id.index:
+                if v[0] <= float(data_w_id.loc[str(i)]) < v[1]:
+                    L.append(i)
+            R[str(b)]=L
+        return R
+
+    from_distr=extract_bins_to_ids_dict(np.log(data[data['auct_year']==from_year]['avg_estimate']), bin_n=20, do_qtiles=True, qtile=qtiles)
+    to_distr=extract_bins_to_ids_dict(np.log(data[data['auct_year']==to_year]['avg_estimate']), bin_n=20, do_qtiles=True, qtile=qtiles)
+
+    # stats
+    V=[]
+    for k, v in from_distr.items():
+        for i in v:
+            V.append(i)
+    A=tuple(V)
+    V=[]
+    for k, v in to_distr.items():
+        for i in v:
+            V.append(i)
+
+    B=tuple(V)
+    full_shared_artist_ids=set(A) & set(B)
+    lost_artists= list(set(A).difference(B))
+    loss=round((len(lost_artists)/len(A))*100, 2)
+    print(f'The chosen years are missing shared infos for {round(loss, 2)}% of the authors')
+    prop_constan=round(loss, 2)/100
+    R={}
+    for q_n in list(from_distr.keys()):
+        ids=list(set(from_distr[f'{quantile_n}']) & set(to_distr[f'{q_n}']))
+        f=round(float(len(ids)/len(from_distr[q_n])), 2)
+        R[f'{quantile_n}_to_{q_n}']={'common_ids': ids, 'fraction': f}
+
+    if do_plot:
+        fractions=[]
+
+        for k,v in R.items():
+            fractions.append(v['fraction']/prop_constan)
+
+        plt.figure(figsize = (8,6))
+        ax=sns.barplot(x=list(R.keys()), y=fractions)
+        ax.set_xticklabels(labels=list(R.keys()), rotation=45)
+        ax.set(xlabel='from/to quantile', ylabel='fraction_on_common_data', title=f'{quantile_n}th quantile dispersion from {from_year} to {to_year}')
+        plt.plot()
+        
+    return R, full_shared_artist_ids, lost_artists
