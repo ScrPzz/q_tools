@@ -13,3 +13,6 @@ plot_tools/plot_tools.py
 quant_tools/__init__.py
 quant_tools/alluvial.py
 quant_tools/quant_tools.py
+quant_tools/__pycache__/__init__.cpython-39.pyc
+tests/__init__.py
+tests/tests.py
